@@ -1,0 +1,76 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id              Int        @id @default(autoincrement())
+  username        String     @unique
+  password        String
+  cash            Float      @default(1000.0)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  orders          Order[]
+  tradesAsBuyer   Trade[]    @relation("BuyerRelation")
+  tradesAsSeller  Trade[]    @relation("SellerRelation")
+  positions       Position[]
+}
+
+model Market {
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String
+  category    String
+  status      String     @default("ACTIVE") // ACTIVE, RESOLVED_YES, RESOLVED_NO, CANCELLED
+  expiresAt   DateTime
+  createdAt   DateTime   @default(now())
+  orders      Order[]
+  trades      Trade[]
+  positions   Position[]
+}
+
+model Order {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  marketId    Int
+  market      Market   @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  type        String   // BUY, SELL
+  outcome     String   // YES, NO
+  price       Float    // Price per share between 0.01 and 0.99
+  quantity    Int      // Total quantity placed
+  remaining   Int      // Quantity left to match
+  status      String   @default("PENDING") // PENDING, PARTIAL, FILLED, CANCELLED
+  createdAt   DateTime @default(now())
+}
+
+model Trade {
+  id        Int      @id @default(autoincrement())
+  marketId  Int
+  market    Market   @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  buyerId   Int
+  buyer     User     @relation("BuyerRelation", fields: [buyerId], references: [id], onDelete: Cascade)
+  sellerId  Int
+  seller    User     @relation("SellerRelation", fields: [sellerId], references: [id], onDelete: Cascade)
+  outcome   String   // YES, NO
+  price     Float    // Price at which it matched
+  quantity  Int
+  createdAt DateTime @default(now())
+}
+
+model Position {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  marketId  Int
+  market    Market   @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  outcome   String   // YES, NO
+  quantity  Int      // Number of shares held
+  avgPrice  Float    // Average price paid per share
+
+  @@unique([userId, marketId, outcome])
+}
