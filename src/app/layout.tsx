@@ -6,6 +6,20 @@ import Navbar from '@/components/Navbar';
 export const metadata = {
   title: 'Nebula Predict - Production Prediction Market MVP',
   description: 'A production-level order book prediction market platform.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Nebula Predict',
+  },
+};
+
+export const viewport = {
+  themeColor: '#090a10',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
